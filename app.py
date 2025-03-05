@@ -1,11 +1,13 @@
 import os
-from flask_sqlalchemy import SQLAlchemy
 from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
 from helpers import apology, login_required, lookup, usd
 from datetime import datetime
+from cs50 import SQL
+
+
 
 app = Flask(__name__)
 
@@ -26,9 +28,11 @@ def after_request(response):
     response.headers["Pragma"] = "no-cache"
     return response
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///scenario.db"
-db = SQLAlchemy(app)
+# app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///scenario1.db"
+# db = SQLAlchemy(app)
 # db = SQL("sqlite:///project.db")
+db = SQL("sqlite:///scenario1.db")
+
 
 @app.route("/")
 @login_required
@@ -164,17 +168,18 @@ def register():
     if request.method == "POST":
         if not request.form.get("username"):
             return apology("must provide username", 400)
-        row = db.execute("SELECT Username FROM users")
+        row = db.execute("SELECT user_name FROM users")
         for i in range(len(row)):
-            if request.form.get("username") == row[i]["Username"]:
+            if request.form.get("username") == row[i]["user_name"]:
                 return apology("username already exists", 400)
         if not request.form.get("password") or not request.form.get("confirmation") or request.form.get("password") != request.form.get("confirmation"):
             return apology("Passwords do not match", 400)
 
         username = request.form.get("username")
         password = request.form.get("password")
-        db.execute("INSERT INTO users (username, hash) VALUES(?, ?)", username,
-                   generate_password_hash(password, method='pbkdf2', salt_length=16))
+        age = request.form.get("age")
+        db.execute("INSERT INTO users (user_name, password_hash, age, Level) VALUES(?, ?, ?, 0)", username,
+                   generate_password_hash(password, method='pbkdf2', salt_length=16), age)
         return redirect("/login")
 
     else:
