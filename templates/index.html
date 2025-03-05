@@ -1,0 +1,22 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    index
+{% endblock %}
+
+{% block main %}
+        <h1>Chats</h1>
+            <table>
+                <thead>
+                </thead>
+                <tbody>
+                    {% for entry in portfolio %}
+                        <div class="list-group" id="friends-list">
+                            <form action = "/chat" method = "GET"><input type="hidden" name="currentname" value = "{{ entry.Username }}"><button type = "submit" id="friends-list">{{ entry.Username }}</button></input></form>
+                            <br>
+                        </div>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+{% endblock %}

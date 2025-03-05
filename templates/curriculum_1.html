@@ -1,0 +1,50 @@
+{% extends "layout.html" %}
+
+{% block title %}Curriculum 1 - Level 1{% endblock %}
+
+{% block main %}
+<div class="container my-5">
+    <h1 class="mb-4">Level 1: The Beginning</h1>
+
+    <!-- Progress Indicator -->
+    <div class="progress mb-4" style="height: 20px;">
+        <div class="progress-bar bg-info" role="progressbar" style="width: 33%;" 
+             aria-valuenow="33" aria-valuemin="0" aria-valuemax="100">
+            33%
+        </div>
+    </div>
+
+    <!-- Read Article Section -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-dark text-white">
+            Read the Article
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">Introduction to Cyber Quest</h5>
+            <p class="card-text">
+                Begin your journey by reading the basics of cybersecurity and understanding the world of Cyber Quest.
+            </p>
+            <a href="#" class="btn btn-primary">Read Article</a>
+        </div>
+    </div>
+
+    <!-- Play Game Section -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-dark text-white">
+            Play the Game
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">Cyber Challenge Level 1</h5>
+            <p class="card-text">
+                Test your newfound knowledge in an interactive game challenge. Solve puzzles and progress your skills.
+            </p>
+            <a href="#" class="btn btn-success">Play Game</a>
+        </div>
+    </div>
+
+    <!-- Navigation to Next Level (Disabled until completion) -->
+    <div class="text-end">
+        <a href="/curriculum2" class="btn btn-outline-secondary">Proceed to Level 2</a>
+    </div>
+</div>
+{% endblock %}
