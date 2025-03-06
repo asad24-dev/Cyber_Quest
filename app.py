@@ -38,12 +38,12 @@ db = SQL("sqlite:///scenario1.db")
 @login_required
 def index():
     """Show portfolio of stocks"""
-    portfolio = db.execute("SELECT users.Username FROM users, friend WHERE friend.User_ID = :id AND users.User_ID = friend.Friend_ID", id=session["user_id"])
-    return render_template("curriculum_1.html", portfolio = portfolio)
+    progress = db.execute("SELECT Level FROM users WHERE User_ID = :id", id=session["user_id"])
+    return render_template("curriculum_1.html", progress = progress)
 
-@app.route("/curriculum1")
-def curriculum_1():
-    return render_template('curriculum_1.html')
+# @app.route("/curriculum1")
+# def curriculum_1():
+#     return render_template('curriculum_1.html')
 
 @app.route("/sent")
 @login_required
@@ -107,17 +107,17 @@ def login():
             return apology("must provide password", 403)
 
         # Query database for username
-        rows = db.execute("SELECT * FROM users WHERE Username = ?", request.form.get("username"))
+        rows = db.execute("SELECT * FROM users WHERE user_name = ?", request.form.get("username"))
 
         # Ensure username exists and password is correct
-        if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password")):
+        if len(rows) != 1 or not check_password_hash(rows[0]["password_hash"], request.form.get("password")):
             return apology("invalid username and/or password", 403)
 
         # Remember which user has logged in
         session["user_id"] = rows[0]["User_ID"]
 
         # Redirect user to home page
-        return redirect("/")
+        return render_template("/curriculum_1.html")
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:
@@ -174,12 +174,17 @@ def register():
                 return apology("username already exists", 400)
         if not request.form.get("password") or not request.form.get("confirmation") or request.form.get("password") != request.form.get("confirmation"):
             return apology("Passwords do not match", 400)
-
+        if not request.form.get("age"):
+            return apology("Enter your age", 400)
         username = request.form.get("username")
         password = request.form.get("password")
         age = request.form.get("age")
-        db.execute("INSERT INTO users (user_name, password_hash, age, Level) VALUES(?, ?, ?, 0)", username,
-                   generate_password_hash(password, method='pbkdf2', salt_length=16), age)
+        if int(age) > int(15):
+            curr = 2 
+        else:
+            curr = 1
+        db.execute("INSERT INTO users (user_name, password_hash, age, Level, Curriculum) VALUES(?, ?, ?, 0, ?)", username,
+                   generate_password_hash(password, method='pbkdf2', salt_length=16), age, curr)
         return redirect("/login")
 
     else:
