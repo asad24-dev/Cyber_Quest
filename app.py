@@ -23,13 +23,55 @@ Session(app)
 
 db = SQL("sqlite:///scenario1.db")
 
+
 @app.route("/")
 @login_required
 def index():
+    session.clear()
     """Show portfolio of stocks"""
     progress = db.execute("SELECT Level FROM users WHERE User_ID = :id", id=session["user_id"])
     return render_template("curriculum_1.html", progress = progress)
 
+@app.route("/curriculum")
+@login_required
+def curriculum():
+    user_id = session["user_id"]
+    rows = db.execute("SELECT Level, Curriculum FROM users WHERE User_ID = ?", user_id)
+    if len(rows) != 1:
+        return apology("User not found", 403)
+    current_level = int(rows[0]["Level"])  # convert to integer if needed
+    curriculum_val = rows[0]["Curriculum"]
+    progress = db.execute("SELECT ap.article_read FROM articles AS a LEFT JOIN article_progress AS ap ON a.id = ap.article_id AND ap.user_id = ? WHERE a.curriculum = ? AND a.level = ?", user_id, curriculum_val, current_level)
+    article_read = (len(progress) == 1 and progress[0]["article_read"] == 1)
+
+    return render_template("curriculum_1.html", level=current_level, curriculum=curriculum_val, article_read = article_read)
+
+@app.route("/article/<int:level>", methods=["GET", "POST"])
+@login_required
+def article(level):
+    user_id = session["user_id"]
+    rows = db.execute("SELECT Curriculum FROM users WHERE User_ID = ?", user_id)
+    if len(rows) != 1:
+        return apology("User not found", 403)
+    curriculum_val = rows[0]["Curriculum"]
+
+    # Query the article based on curriculum and level.
+    result = db.execute("SELECT * FROM articles WHERE curriculum = ? AND level = ?", curriculum_val, level)
+    if len(result) != 1:
+        return apology("Article not found", 404)
+    article = result[0]
+
+    if request.method == "POST":
+        # Mark the article as read in the article_progress table.
+        progress = db.execute("SELECT * FROM article_progress WHERE user_id = ? AND article_id = ?", user_id, article["id"])
+        if len(progress) == 0:
+            db.execute("INSERT INTO article_progress (user_id, article_id, article_read) VALUES (?, ?, 1)", user_id, article["id"])
+        else:
+            db.execute("UPDATE article_progress SET article_read = 1 WHERE user_id = ? AND article_id = ?", user_id, article["id"])
+        return redirect("/curriculum")
+    else:
+        return render_template("article.html", level=level, article=article)
+    
 @app.route("/next", methods=["GET", "POST"])
 @login_required
 def next_level():
@@ -83,17 +125,7 @@ def login():
     else:
         return render_template("login.html")
 
-@app.route("/curriculum")
-@login_required
-def curriculum():
-    user_id = session["user_id"]
-    rows = db.execute("SELECT Level, Curriculum FROM users WHERE User_ID = ?", user_id)
-    if len(rows) != 1:
-        return apology("User not found", 403)
-    current_level = int(rows[0]["Level"])  # convert to integer if needed
-    curriculum_val = rows[0]["Curriculum"]
 
-    return render_template("curriculum_1.html", level=current_level, curriculum=curriculum_val)
 
 @app.route("/logout")
 def logout():

@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Article for Level {{ level }}
+{% endblock %}
+
+{% block main %}
+    <h1>{{ article.title }}</h1>
+    <div style="border: 1px solid rgb(204, 204, 204); height: 400px; overflow: auto; padding: 20px;">
+        {{ article.content }}
+    </div>
+    <div class="text-end mt-4">
+        <form method="post" action="{{ url_for('article', level=level) }}">
+            <button type="submit" class="btn btn-primary">Continue</button>
+        </form>
+    </div>
+   
+{% endblock %}
