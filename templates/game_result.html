@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Article for Level {{ level }}
+{% endblock %}
+
+{% block main %}
+<div class="container my-5">
+    <h1 class="!text-neutral-a12" level="1" node="[object Object]">Quiz Result</h1>
+    <p class="!text-neutral-a12" node="[object Object]">Your score is {{ score }} out of 100.</p>
+    {% if score == 100 %}
+        <p class="!text-neutral-a12" node="[object Object]">Excellent! You passed the quiz.</p>
+    {% else %}
+        <p class="!text-neutral-a12" node="[object Object]">Some answers were incorrect. Please try again.</p>
+        <a href="{{ url_for('game', level=level) }}" class="!text-neutral-a12 btn btn-primary" node="[object Object]">Retry Quiz</a>
+    {% endif %}
+    <br>
+    <a href="{{ url_for('curriculum') }}" class="!text-neutral-a12 btn btn-secondary mt-3" node="[object Object]">Return to Curriculum</a>
+</div>
+   
+{% endblock %}

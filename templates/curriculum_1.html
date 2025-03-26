@@ -45,12 +45,17 @@
                 <p class="card-text">
                     Test your newfound knowledge in an interactive game challenge. Solve puzzles and progress your skills.
                 </p>
-                <a href="#" class="btn btn-success" onclick="markGamePlayed();">Play Game</a>
+                {% if quiz_passed %}
+                    <span class="btn btn-secondary">Quiz Passed</span>
+                {% else %}
+                    <a href="{{ url_for('game', level=level) }}" class="btn btn-success" node="[object Object]">Play Game</a>
+                {% endif %}
+                
             </div>
         </div>
 
         <!-- Navigation to Next Level (Disabled until completion) -->
-        {% if article_read %}
+        {% if article_read and quiz_passed %}
             <div class="text-end">
                 <a href="/next" id="proceedLink" class="btn btn-outline-secondary">Proceed to Level 2</a>
             </div>

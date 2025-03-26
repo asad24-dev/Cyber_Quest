@@ -29,7 +29,7 @@ db = SQL("sqlite:///scenario1.db")
 def index():
     session.clear()
     """Show portfolio of stocks"""
-    progress = db.execute("SELECT Level FROM users WHERE User_ID = :id", id=session["user_id"])
+    progress = db.execute("SELECT level FROM users WHERE user_ID = :id", id=session["user_id"])
     return render_template("curriculum_1.html", progress = progress)
 
 @app.route("/curriculum")
@@ -43,8 +43,54 @@ def curriculum():
     curriculum_val = rows[0]["Curriculum"]
     progress = db.execute("SELECT ap.article_read FROM articles AS a LEFT JOIN article_progress AS ap ON a.id = ap.article_id AND ap.user_id = ? WHERE a.curriculum = ? AND a.level = ?", user_id, curriculum_val, current_level)
     article_read = (len(progress) == 1 and progress[0]["article_read"] == 1)
+    progress_quiz = db.execute("SELECT game_passed FROM quiz_progress WHERE user_id = ? AND curriculum = ? AND level = ?", user_id, curriculum_val, current_level)
+    quiz_passed = (len(progress_quiz) == 1 and progress_quiz[0]["game_passed"] == 1)
+    return render_template("curriculum_1.html", level=current_level, curriculum=curriculum_val, article_read = article_read, quiz_passed = quiz_passed)
 
-    return render_template("curriculum_1.html", level=current_level, curriculum=curriculum_val, article_read = article_read)
+@app.route("/game/<int:level>", methods=["GET", "POST"])
+@login_required
+def game(level):
+    user_id = session["user_id"]
+    # Retrieve user's curriculum from their record
+    # Retrieve user's curriculum from the users table.
+    rows = db.execute("SELECT Curriculum FROM users WHERE User_ID = ?", user_id)
+    if len(rows) != 1:
+        return apology("User not found", 403)
+    curriculum_val = rows[0]["Curriculum"]
+
+    # Retrieve quiz questions for the given curriculum and level.
+    questions = db.execute("SELECT * FROM quiz_questions WHERE curriculum = ? AND level = ?",
+                        curriculum_val, level)
+    # (Optionally, you might want to check if questions is empty and handle that case.)
+
+    if request.method == "POST":
+        score = 0
+        total = len(questions)
+        wrong = []  # store question ids for which the answer was wrong.
+
+        # Loop over questions and check each answer from the submitted form.
+        for q in questions:
+            ans = request.form.get("question_" + str(q["id"]))
+            if ans is not None and int(ans) == q["correct_option"]:
+                score += (1 / total) * 100
+                progress = db.execute("SELECT * FROM quiz_progress WHERE user_id = ? AND curriculum = ? AND level = ?", user_id, curriculum_val, level)
+                if len(progress) == 0:
+                    db.execute("INSERT INTO quiz_progress (user_id, curriculum, level, game_passed) VALUES (?, ?, ?, 1)", user_id, curriculum_val, level)
+                else:
+                    db.execute("UPDATE quiz_progress SET game_passed = 1 WHERE user_id = ? AND curriculum = ? AND level = ?", user_id, curriculum_val, level)
+            else:
+                wrong.append(q["id"])
+
+        # Always return a response. If score calculation is done, render the result page.
+        return render_template("game_result.html", level=level, score=score, total=total, wrong=wrong)
+
+    elif request.method == "GET":
+        # For GET method, render the quiz page.
+        return render_template("game.html", level=level, quiz_questions=questions)
+
+    # As a fallback, if neither GET nor POST (should not happen normally), return an error.
+    return apology("Invalid request method", 400)
+            
 
 @app.route("/article/<int:level>", methods=["GET", "POST"])
 @login_required
