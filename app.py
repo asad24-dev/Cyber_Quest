@@ -1,11 +1,13 @@
 import os
-from flask import Flask, flash, redirect, render_template, request, session
+from flask import Flask, flash, redirect, render_template, request, session, url_for
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
 from datetime import datetime
 from helpers import apology, login_required, lookup, usd
 from datetime import datetime
 from cs50 import SQL
+import random
+from random import choice
 
 
 
@@ -23,14 +25,49 @@ Session(app)
 
 db = SQL("sqlite:///scenario1.db")
 
+def init_db():
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS ai_game_progress (
+            user_id INTEGER NOT NULL,
+            score INTEGER DEFAULT 0,
+            total_attempts INTEGER DEFAULT 0,
+            FOREIGN KEY(user_id) REFERENCES users(User_ID)
+        )
+    """)
+
+# Call init_db immediately after defining it
+init_db()
+
+# Store image data - you'll need to update these paths based on your structure
+IMAGES = [
+    {"filename": "AI_landscape.png", "is_ai": True, "level": 1},
+    {"filename": "AI_person.png", "is_ai": True, "level": 1},
+    {"filename": "Real_landscape.jpg", "is_ai": False, "level": 1},
+    {"filename": "Real_person.png", "is_ai": False, "level": 1}
+]
+
+def get_unseen_image(level, seen_images):
+    """Get a random unseen image for the given level"""
+    level_images = [img for img in IMAGES if img["level"] == level]
+    unseen_images = [img for img in level_images if img["filename"] not in seen_images]
+    
+    # If all images have been seen, reset the seen images
+    if not unseen_images:
+        seen_images.clear()
+        unseen_images = level_images
+    
+    return choice(unseen_images)
+
 
 @app.route("/")
 @login_required
 def index():
-    session.clear()
-    """Show portfolio of stocks"""
-    progress = db.execute("SELECT level FROM users WHERE user_ID = :id", id=session["user_id"])
-    return render_template("curriculum_1.html", progress = progress)
+    """Show main dashboard"""
+    user_id = session["user_id"]
+    rows = db.execute("SELECT Level, Curriculum FROM users WHERE User_ID = ?", user_id)
+    if len(rows) != 1:
+        return apology("User not found", 403)
+    return redirect(url_for('curriculum'))
 
 @app.route("/curriculum")
 @login_required
@@ -145,7 +182,6 @@ def login():
 
     # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
-
         # Ensure username was submitted
         if not request.form.get("username"):
             return apology("must provide username", 403)
@@ -163,7 +199,7 @@ def login():
 
         # Remember which user has logged in
         session["user_id"] = rows[0]["User_ID"]
-        
+
         # Redirect user to home page
         return redirect("/curriculum")
 
@@ -216,6 +252,131 @@ def register():
 
     else:
         return render_template("register.html")
+
+@app.route("/play")
+@login_required
+def play():
+    # Select random image
+    if not session.get("current_image"):
+        session["current_image"] = random.choice(IMAGES)
+    return render_template("play.html", image=session["current_image"])
+
+@app.route("/guess", methods=["POST"])
+@login_required
+def guess():
+    guess = request.form.get("guess") == "true"
+    current_image = session["current_image"]
+    
+    is_correct = guess == current_image["is_ai"]
+    
+    if is_correct:
+        session["score"] = session.get("score", 0) + 1
+    session["total"] = session.get("total", 0) + 1
+    
+    session["current_image"] = None
+    
+    return render_template("result.html", 
+                         is_correct=is_correct,
+                         image=current_image,
+                         score=session["score"],
+                         total=session["total"])
+
+@app.route("/ai_game/<int:level>", methods=["GET"])
+@login_required
+def ai_game(level):
+    try:
+        user_id = session["user_id"]
+        
+        # Get user's progress
+        progress = db.execute("SELECT score, total_attempts FROM ai_game_progress WHERE user_id = ?", user_id)
+        if not progress:
+            db.execute("INSERT INTO ai_game_progress (user_id, score, total_attempts) VALUES (?, 0, 0)", user_id)
+            progress = [{"score": 0, "total_attempts": 0}]
+        
+        # Reset game score for this session
+        session["score"] = 0
+        session["total"] = 0
+        session["seen_images"] = [] 
+        
+        # Get user's progress
+        progress = db.execute("SELECT score, total_attempts FROM ai_game_progress WHERE user_id = ?", user_id)
+        if not progress:
+            db.execute("INSERT INTO ai_game_progress (user_id, score, total_attempts) VALUES (?, 0, 0)", user_id)
+            progress = [{"score": 0, "total_attempts": 0}]
+        
+        return render_template("ai_game.html", 
+                             level=level,
+                             total_score=progress[0]["score"],
+                             total_attempts=progress[0]["total_attempts"])
+    except Exception as e:
+        print(f"Error in ai_game route: {str(e)}")
+        return apology(f"An error occurred: {str(e)}", 500)
+
+@app.route("/ai_play/<int:level>")
+@login_required
+def ai_play(level):
+    # Initialize or get the list of seen images for this session
+    if "seen_images" not in session:
+        session["seen_images"] = []
+    
+    # Select random unseen image for this level
+    if not session.get("current_image"):
+        current_image = get_unseen_image(level, session["seen_images"])
+        session["current_image"] = current_image
+        session["seen_images"].append(current_image["filename"])
+    
+    return render_template("play.html", image=session["current_image"], level=level)
+
+@app.route("/ai_guess/<int:level>", methods=["POST"])
+@login_required
+def ai_guess(level):
+    user_id = session["user_id"]
+    guess = request.form.get("guess") == "true"
+    current_image = session["current_image"]
+    
+    is_correct = guess == current_image["is_ai"]
+    
+    # Update session score
+    if is_correct:
+        session["score"] = session.get("score", 0) + 1
+    session["total"] = session.get("total", 0) + 1
+    
+    # Update database score
+    db.execute("""
+        UPDATE ai_game_progress 
+        SET score = score + ?, total_attempts = total_attempts + 1 
+        WHERE user_id = ?
+    """, 1 if is_correct else 0, user_id)
+    
+    # Clear current image for next round
+    session["current_image"] = None
+    
+    # If they've completed enough correct guesses, mark the level as passed
+    if session["score"] >= 3:  # Require 3 correct answers to pass
+        progress = db.execute(
+            "SELECT * FROM quiz_progress WHERE user_id = ? AND curriculum = ? AND level = ?", 
+            user_id, 'ai_game', level
+        )
+        if len(progress) == 0:
+            db.execute(
+                "INSERT INTO quiz_progress (user_id, curriculum, level, game_passed) VALUES (?, ?, ?, 1)", 
+                user_id, 'ai_game', level
+            )
+        else:
+            db.execute(
+                "UPDATE quiz_progress SET game_passed = 1 WHERE user_id = ? AND curriculum = ? AND level = ?", 
+                user_id, 'ai_game', level
+            )
+    
+    return render_template("result.html",
+                         is_correct=is_correct,
+                         image=current_image,
+                         score=session["score"],
+                         total=session["total"],
+                         level=level)
+
+if __name__ == "__main__":
+    app.run(debug=True)
 
 
 

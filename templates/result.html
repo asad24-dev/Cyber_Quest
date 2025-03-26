@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="result">
+    <h2>Level {{ level }}</h2>
+    <h3>{% if is_correct %}Correct!{% else %}Wrong!{% endif %}</h3>
+    <p>This image was {% if image.is_ai %}AI-generated{% else %}real{% endif %}.</p>
+    <img src="{{ url_for('static', filename='images/' + image.filename) }}" alt="Result image">
+    <p>Current Level Score: {{ score }}/{{ total }}</p>
+    
+    {% if score >= 3 %}
+    <!-- Completion Modal -->
+    <div class="modal fade" id="completionModal" tabindex="-1" aria-labelledby="completionModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="completionModalLabel">Congratulations! Here's what to look for:</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>Landscapes:</h6>
+                    <p>AI-generated landscapes often display hyper-realistic lighting and overly smooth gradients. Real landscapes tend to have messier details: uneven lighting, weathering, and natural randomness.</p>
+                    
+                    <h6>Faces and People:</h6>
+                    <p>AI-generated faces often show perfect skin, symmetrical features, and a slightly unnatural smoothness—especially around hairlines, clothing edges, or the eyes, where transitions can look plastic or blurred. Images of real people tend to include minor skin texture, inconsistent lighting, and organic asymmetries that AI sometimes overlooks.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <a href="{{ url_for('curriculum') }}" class="btn btn-primary">Back to Curriculum</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add JavaScript to auto-show modal -->
+    <script>
+        window.onload = function() {
+            var modal = new bootstrap.Modal(document.getElementById('completionModal'));
+            modal.show();
+        }
+    </script>
+    {% else %}
+    <a href="{{ url_for('ai_play', level=level) }}" class="button">Next Image</a>
+    {% endif %}
+</div>
+{% endblock %} 
