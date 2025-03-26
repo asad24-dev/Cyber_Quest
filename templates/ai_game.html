@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="intro">
+    <h2>AI or Real? - Level {{ level }}</h2>
+    <p>Can you tell which images are AI-generated and which are real?</p>
+    <p>Your Overall Score: {{ total_score }}/{{ total_attempts }}</p>
+    <p>Get 3 correct answers to pass this level!</p>
+    <a href="{{ url_for('ai_play', level=level) }}" class="button">Start Playing</a>
+</div>
+{% endblock %} 

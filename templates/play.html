@@ -1,0 +1,23 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="game">
+    <h2>Level {{ level }}</h2>
+    <div class="progress mb-3" style="height: 20px;">
+        <div class="progress-bar bg-success" role="progressbar" 
+             style="width: {{ (session.score|default(0) / 3) * 100 }}%;" 
+             aria-valuenow="{{ session.score|default(0) }}" 
+             aria-valuemin="0" 
+             aria-valuemax="3">
+            {{ session.score|default(0) }}/3 Correct
+        </div>
+    </div>
+    <p style="display:none">Debug: {{ url_for('static', filename='images/' + image.filename) }}</p>
+    <img src="{{ url_for('static', filename='images/' + image.filename) }}" alt="Guess if AI or real" onerror="console.log('Failed to load image:', this.src)">
+    <form action="{{ url_for('ai_guess', level=level) }}" method="post">
+        <button type="submit" name="guess" value="true" class="button">AI Generated</button>
+        <button type="submit" name="guess" value="false" class="button">Real Photo</button>
+    </form>
+    <p>Current Level Score: {{ session.score|default(0) }}/{{ session.total|default(0) }}</p>
+</div>
+{% endblock %} 

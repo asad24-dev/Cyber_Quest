@@ -54,6 +54,24 @@
             </div>
         </div>
 
+        <!-- AI Game Section -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-dark text-white">
+                AI Image Detection Challenge
+            </div>
+            <div class="card-body">
+                <h5 class="card-title">AI Detection Level {{ level }}</h5>
+                <p class="card-text">
+                    Test your ability to distinguish between AI-generated and real images. Can you spot the differences?
+                </p>
+                {% if quiz_passed and curriculum == 'ai_game' %}
+                    <span class="btn btn-secondary">Challenge Completed</span>
+                {% else %}
+                    <a href="{{ url_for('ai_game', level=level) }}" class="btn btn-success">Start Challenge</a>
+                {% endif %}
+            </div>
+        </div>
+
         <!-- Navigation to Next Level (Disabled until completion) -->
         {% if article_read and quiz_passed %}
             <div class="text-end">
@@ -96,6 +114,19 @@
             <a href="#" class="btn btn-success">Play Game</a>
         </div>
     </div>
+    <!-- AI Game Section -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-dark text-white">
+            AI Image Detection Challenge
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">AI Detection Level {{ level }}</h5>
+            <p class="card-text">
+                Test your ability to distinguish between AI-generated and real images. Can you spot the differences?
+            </p>
+            <a href="{{ url_for('ai_game', level=level) }}" class="btn btn-success">Start Challenge</a>
+        </div>
+    </div>
     <!-- Navigation to Next Level -->
     <div class="text-end">
         <a href="/next" class="btn btn-outline-secondary">Proceed to Level 3</a>
@@ -134,6 +165,19 @@
                 Prove your commitment by conquering the final challenge.
             </p>
             <a href="#" class="btn btn-success">Play Game</a>
+        </div>
+    </div>
+    <!-- AI Game Section -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-header bg-dark text-white">
+            AI Image Detection Challenge
+        </div>
+        <div class="card-body">
+            <h5 class="card-title">AI Detection Level {{ level }}</h5>
+            <p class="card-text">
+                Test your ability to distinguish between AI-generated and real images. Can you spot the differences?
+            </p>
+            <a href="{{ url_for('ai_game', level=level) }}" class="btn btn-success">Start Challenge</a>
         </div>
     </div>
     <!-- Navigation or Completion -->
