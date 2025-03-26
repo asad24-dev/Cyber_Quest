@@ -20,3 +20,12 @@
             </table>
         </div>
 {% endblock %}
+
+{% block content %}
+<div class="intro">
+    <h2>Welcome to AI or Real?</h2>
+    <p>Can you tell which images are AI-generated and which are real?</p>
+    <p>Current Score: {{ session.score|default(0) }}/{{ session.total|default(0) }}</p>
+    <a href="{{ url_for('play') }}" class="button">Start Playing</a>
+</div>
+{% endblock %}
