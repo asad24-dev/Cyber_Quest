@@ -1,38 +1,321 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Article for Level {{ level }}
+    Quiz for Level {{ level }}
 {% endblock %}
 
 {% block main %}
 <div class="container my-5">
-    <h1 class="mb-4" level="1" node="[object Object]">Quiz for Level {{ level }}</h1>
-    <form action="{{ url_for('game', level=level) }}" method="post">
-        {% for q in quiz_questions %}
-        <div class="card mb-3">
-            <div class="card-body">
-                <h5 class="card-title" level="5" node="[object Object]">{{ q.question }}</h5>
-                <div class="form-check">
-                    <input class="form-check-input" id="q{{ q.id }}_1" type="radio" value="1" name="question_{{ q.id }}">
-                    <label class="form-check-label" for="q{{ q.id }}_1">{{ q.option1 }}</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" id="q{{ q.id }}_2" type="radio" value="2" name="question_{{ q.id }}">
-                    <label class="form-check-label" for="q{{ q.id }}_2">{{ q.option2 }}</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" id="q{{ q.id }}_3" type="radio" value="3" name="question_{{ q.id }}">
-                    <label class="form-check-label" for="q{{ q.id }}_3">{{ q.option3 }}</label>
-                </div>
-                <div class="form-check">
-                    <input class="form-check-input" id="q{{ q.id }}_4" type="radio" value="4" name="question_{{ q.id }}">
-                    <label class="form-check-label" for="q{{ q.id }}_4">{{ q.option4 }}</label>
+    <h1 class="mb-4">Quiz for Level {{ level }}</h1>
+    
+    <!-- Timer and Score Display -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card bg-dark text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Time Remaining</h5>
+                    <div id="timer" class="display-4">20</div>
                 </div>
             </div>
         </div>
+        <div class="col-md-6">
+            <div class="card bg-dark text-white">
+                <div class="card-body">
+                    <h5 class="card-title">Current Score</h5>
+                    <div id="score" class="display-4">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Question Container -->
+    <div id="question-container" class="card mb-4">
+        <div class="card-header bg-dark text-white">
+            <div class="d-flex justify-content-between">
+                <span>Question <span id="current-question">1</span>/<span id="total-questions" data-total="{{ quiz_questions|length }}">{{ quiz_questions|length }}</span></span>
+                <span>Points: <span id="question-points">20</span></span>
+            </div>
+        </div>
+        <div class="card-body">
+            <div id="questions-wrapper">
+                {% for q in quiz_questions %}
+                <div class="question-slide {% if not loop.first %}d-none{% endif %}" id="question-{{ q.id }}" data-id="{{ q.id }}" data-correct="{{ q.correct_option }}">
+                    {% if q.question.startswith('http') or q.question.startswith('/static') %}
+                        <img src="{{ q.question }}" alt="Question" class="img-fluid">
+                    {% else %}
+                        <h3 class="question-text mb-4">{{ q.question }}</h3>
+                    {% endif %}
+                    
+                    <!-- In game.html, check if options exist before rendering -->
+                    <div class="options-container">
+                        <div class="option-card mb-3" data-option="1">
+                            <div class="option-content p-3">
+                                {% if q.option1.startswith('http') or q.option1.startswith('/static') %}
+                                    <img src="{{ q.option1 }}" alt="Option 1" class="img-fluid">
+                                {% else %}
+                                    {{ q.option1 }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="option-card mb-3" data-option="2">
+                            <div class="option-content p-3">
+                                {% if q.option2.startswith('http') or q.option2.startswith('/static') %}
+                                    <img src="{{ q.option2 }}" alt="Option 2" class="img-fluid">
+                                {% else %}
+                                    {{ q.option2 }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% if q.option3 %}
+                        <div class="option-card mb-3" data-option="3">
+                            <div class="option-content p-3">
+                                {% if q.option3.startswith('http') or q.option3.startswith('/static') %}
+                                    <img src="{{ q.option3 }}" alt="Option 3" class="img-fluid">
+                                {% else %}
+                                    {{ q.option3 }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if q.option4 %}
+                        <div class="option-card mb-3" data-option="4">
+                            <div class="option-content p-3">
+                                {% if q.option4.startswith('http') or q.option4.startswith('/static') %}
+                                    <img src="{{ q.option4 }}" alt="Option 4" class="img-fluid">
+                                {% else %}
+                                    {{ q.option4 }}
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Form to submit final results -->
+    <form id="quiz-form" action="{{ url_for('game', level=level) }}" method="post" style="display:none;">
+        {% for q in quiz_questions %}
+        <input type="hidden" id="answer-{{ q.id }}" name="question_{{ q.id }}" value="">
         {% endfor %}
-        <button type="submit" class="btn btn-primary">Submit Quiz</button>
+        <input type="hidden" id="final-score" name="final_score" value="0">
     </form>
 </div>
-   
+
+<script type="application/json" id="quiz-data">
+    {{ {
+        "level": level,
+        "questions": quiz_questions
+    }|tojson|safe }}
+</script>
+<script>
+// @ts-nocheck
+// Disable validation for mixed Jinja/JavaScript code
+// Create a data bridge to safely pass Jinja data to JavaScript
+const quizData = JSON.parse(document.getElementById('quiz-data').textContent);
+
+// Quiz game logic
+document.addEventListener('DOMContentLoaded', function() {
+    // Console log the data to check it's correct
+    console.log("Quiz data:", quizData);
+    
+    let currentQuestionIndex = 0;
+    let totalQuestions = quizData.questions.length;
+    let timeRemaining = 20;
+    let timerInterval;
+    let totalScore = 0;
+    let questionPoints = 20;
+    
+    // Set up option click handlers
+    document.querySelectorAll('.option-card').forEach(option => {
+        option.addEventListener('click', handleOptionSelect);
+    });
+    
+    // Initialize display and timer
+    updateDisplay();
+    startTimer();
+    
+    function handleOptionSelect(e) {
+        // Get the parent question slide
+        const questionSlide = e.currentTarget.closest('.question-slide');
+        const questionId = questionSlide.dataset.id;
+        const correctOption = questionSlide.dataset.correct;
+        const selectedOption = e.currentTarget;
+        const selectedValue = selectedOption.dataset.option;
+        
+        console.log("Selected:", selectedValue, "Correct:", correctOption);
+        
+        // Stop the timer
+        clearInterval(timerInterval);
+        
+        // Store the answer in the hidden form
+        const answerInput = document.getElementById(`answer-${questionId}`);
+        if (answerInput) {
+            answerInput.value = selectedValue;
+        }
+        
+        // Highlight correct and incorrect answers
+        questionSlide.querySelectorAll('.option-card').forEach(opt => {
+            if (opt.dataset.option === correctOption) {
+                opt.classList.add('correct-answer');
+            } else if (opt === selectedOption && opt.dataset.option !== correctOption) {
+                opt.classList.add('incorrect-answer');
+            }
+            // Disable all options after selection
+            opt.style.pointerEvents = 'none';
+        });
+        
+        // Add points if correct
+        if (selectedValue === correctOption) {
+            totalScore += questionPoints;
+            document.getElementById('score').textContent = totalScore;
+        }
+        
+        // Prepare for next question after delay
+        setTimeout(() => {
+            moveToNextQuestion();
+        }, 1500);
+    }
+    
+    function startTimer() {
+        // Reset timer values
+        timeRemaining = 20;
+        questionPoints = 20;
+        updateDisplay();
+        
+        // Clear any existing interval
+        if (timerInterval) clearInterval(timerInterval);
+        
+        // Start new timer
+        timerInterval = setInterval(() => {
+            timeRemaining--;
+            questionPoints = Math.max(1, 20 - ((20 - timeRemaining) * 0.5));
+            questionPoints = Math.round(questionPoints * 20) / 20;
+            updateDisplay();
+            
+            if (timeRemaining <= 0) {
+                clearInterval(timerInterval);
+                moveToNextQuestion();
+            }
+        }, 1000);
+    }
+    
+    function updateDisplay() {
+        const timerEl = document.getElementById('timer');
+        const pointsEl = document.getElementById('question-points');
+        const currentQuestionEl = document.getElementById('current-question');
+        const scoreEl = document.getElementById('score');
+        
+        if (timerEl) timerEl.textContent = timeRemaining;
+        if (pointsEl) pointsEl.textContent = questionPoints;
+        if (currentQuestionEl) currentQuestionEl.textContent = currentQuestionIndex + 1;
+        if (scoreEl) scoreEl.textContent = totalScore;
+    }
+    
+    function moveToNextQuestion() {
+        // Hide all question slides
+        document.querySelectorAll('.question-slide').forEach(slide => {
+            slide.classList.add('d-none');
+        });
+        
+        // Increment question index
+        currentQuestionIndex++;
+        
+        // Check if quiz is finished
+        if (currentQuestionIndex >= totalQuestions) {
+            finishQuiz();
+            return;
+        }
+        
+        // Show next question if it exists
+        const nextQuestion = document.querySelector(`.question-slide[data-id="${quizData.questions[currentQuestionIndex].id}"]`);
+        if (nextQuestion) {
+            nextQuestion.classList.remove('d-none');
+        }
+        
+        // Reset and start timer for new question
+        startTimer();
+    }
+    
+    function finishQuiz() {
+        const maxPossibleScore = totalQuestions * 10;
+    
+    // Convert raw score to percentage
+        const scorePercentage = Math.round((totalScore / maxPossibleScore) * 100);
+        // Set final score in the form
+        const finalScoreInput = document.getElementById('final-score');
+        if (finalScoreInput) {
+            finalScoreInput.value = scorePercentage;
+        }
+        
+        // Submit the form
+        const quizForm = document.getElementById('quiz-form');
+        if (quizForm) {
+            quizForm.submit();
+        } else {
+            // Fallback if form not found
+            window.location.href = `/game_result?level=${quizData.level}&score=${totalScore}`;
+        }
+    }
+});
+</script>
+
+<style>
+/* Quiz styling */
+.option-card {
+    background-color: #2a3950;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: white;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+
+.option-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    background-color: #3b5998;
+}
+
+.correct-answer {
+    background-color: #28a745 !important;
+    animation: pulse 1s;
+}
+
+.incorrect-answer {
+    background-color: #dc3545 !important;
+    animation: shake 0.5s;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.question-text {
+    color: #1e2a3a;
+    margin-bottom: 20px;
+}
+
+#timer, #score {
+    font-family: 'Orbitron', sans-serif;
+    text-align: center;
+}
+
+#question-container {
+    border-radius: 15px;
+    overflow: hidden;
+}
+</style>
 {% endblock %}

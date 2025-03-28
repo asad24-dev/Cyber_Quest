@@ -51,44 +51,56 @@ def curriculum():
 @login_required
 def game(level):
     user_id = session["user_id"]
-    # Retrieve user's curriculum from their record
-    # Retrieve user's curriculum from the users table.
+    # Retrieve user's curriculum from the users table
     rows = db.execute("SELECT Curriculum FROM users WHERE User_ID = ?", user_id)
     if len(rows) != 1:
         return apology("User not found", 403)
     curriculum_val = rows[0]["Curriculum"]
 
-    # Retrieve quiz questions for the given curriculum and level.
+    # Retrieve quiz questions
     questions = db.execute("SELECT * FROM quiz_questions WHERE curriculum = ? AND level = ?",
                         curriculum_val, level)
-    # (Optionally, you might want to check if questions is empty and handle that case.)
+    
+    if len(questions) == 0:
+        return apology("No questions found for this level", 404)
 
     if request.method == "POST":
         score = 0
         total = len(questions)
-        wrong = []  # store question ids for which the answer was wrong.
-
-        # Loop over questions and check each answer from the submitted form.
-        for q in questions:
-            ans = request.form.get("question_" + str(q["id"]))
-            if ans is not None and int(ans) == q["correct_option"]:
-                score += (1 / total) * 100
-                progress = db.execute("SELECT * FROM quiz_progress WHERE user_id = ? AND curriculum = ? AND level = ?", user_id, curriculum_val, level)
-                if len(progress) == 0:
-                    db.execute("INSERT INTO quiz_progress (user_id, curriculum, level, game_passed) VALUES (?, ?, ?, 1)", user_id, curriculum_val, level)
+        wrong = []
+        
+        # Check if we have a final score from the timed quiz
+        final_score = request.form.get("final_score")
+        if final_score and final_score.isdigit():
+            score = int(final_score)
+        else:
+            # Fallback to original scoring system
+            for q in questions:
+                ans = request.form.get("question_" + str(q["id"]))
+                if ans is not None and int(ans) == q["correct_option"]:
+                    score += (1 / total) * 100
                 else:
-                    db.execute("UPDATE quiz_progress SET game_passed = 1 WHERE user_id = ? AND curriculum = ? AND level = ?", user_id, curriculum_val, level)
-            else:
-                wrong.append(q["id"])
+                    wrong.append(q["id"])
+        
+        # Record quiz progress regardless of scoring method
+        progress = db.execute("SELECT * FROM quiz_progress WHERE user_id = ? AND curriculum = ? AND level = ?", 
+                            user_id, curriculum_val, level)
+        
+        # Mark as passed if score is at least 70%
+        passed = score >= 70
+        
+        if len(progress) == 0:
+            db.execute("INSERT INTO quiz_progress (user_id, curriculum, level, game_passed, score) VALUES (?, ?, ?, ?, ?)", 
+                    user_id, curriculum_val, level, 1 if passed else 0, score)
+        else:
+            db.execute("UPDATE quiz_progress SET game_passed = ?, score = ? WHERE user_id = ? AND curriculum = ? AND level = ?", 
+                    1 if passed else 0, score, user_id, curriculum_val, level)
 
-        # Always return a response. If score calculation is done, render the result page.
-        return render_template("game_result.html", level=level, score=score, total=total, wrong=wrong)
+        return render_template("game_result.html", level=level, score=score, total=total, wrong=wrong, passed=passed)
 
     elif request.method == "GET":
-        # For GET method, render the quiz page.
         return render_template("game.html", level=level, quiz_questions=questions)
 
-    # As a fallback, if neither GET nor POST (should not happen normally), return an error.
     return apology("Invalid request method", 400)
             
 
@@ -134,6 +146,8 @@ def next_level():
         new_level = current_level + 1
         db.execute("UPDATE users SET Level = ? WHERE User_ID = ?", new_level, user_id)
     # Otherwise, perhaps mark the curriculum as complete or just redirect
+    else:
+        render_template("complete.html")
     return redirect("/curriculum")
 
 @app.route("/login", methods=["GET", "POST"])

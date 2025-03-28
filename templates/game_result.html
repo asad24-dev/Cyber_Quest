@@ -1,21 +1,62 @@
 {% extends "layout.html" %}
 
 {% block title %}
-    Article for Level {{ level }}
+    Quiz Results - Level {{ level }}
 {% endblock %}
 
 {% block main %}
 <div class="container my-5">
-    <h1 class="!text-neutral-a12" level="1" node="[object Object]">Quiz Result</h1>
-    <p class="!text-neutral-a12" node="[object Object]">Your score is {{ score }} out of 100.</p>
-    {% if score == 100 %}
-        <p class="!text-neutral-a12" node="[object Object]">Excellent! You passed the quiz.</p>
-    {% else %}
-        <p class="!text-neutral-a12" node="[object Object]">Some answers were incorrect. Please try again.</p>
-        <a href="{{ url_for('game', level=level) }}" class="!text-neutral-a12 btn btn-primary" node="[object Object]">Retry Quiz</a>
-    {% endif %}
-    <br>
-    <a href="{{ url_for('curriculum') }}" class="!text-neutral-a12 btn btn-secondary mt-3" node="[object Object]">Return to Curriculum</a>
+    <div class="card bg-dark text-white">
+        <div class="card-header">
+            <h1 class="mb-0">Quiz Results</h1>
+        </div>
+        <div class="card-body">
+            <div class="score-container text-center mb-5">
+                <h2>Your Score</h2>
+                <div class="display-1 mb-3 {% if passed %}text-success{% else %}text-danger{% endif %}">
+                    {{ score }}
+                </div>
+                <div class="progress mb-4" style="height: 30px;">
+                    
+                    <div class="progress-bar {% if passed %}bg-success{% else %}bg-danger{% endif %}" 
+                         data-score="{{ score }}" 
+                         aria-valuenow="{{ score }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                        {{ score }}%
+                    </div>
+                </div>
+            </div>
+            
+            {% if passed %}
+                <div class="alert alert-success">
+                    <h3><i class="fas fa-check-circle"></i> Congratulations!</h3>
+                    <p>You've successfully passed this level's quiz! Keep up the great work.</p>
+                </div>
+            {% else %}
+                <div class="alert alert-warning">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Almost there!</h3>
+                    <p>You need to score at least 70% to pass. Try again to improve your score.</p>
+                </div>
+            {% endif %}
+            
+            <div class="text-center mt-4">
+                <a href="{{ url_for('game', level=level) }}" class="btn btn-primary btn-lg mx-2">
+                    Try Again
+                </a>
+                <a href="{{ url_for('curriculum') }}" class="btn btn-secondary btn-lg mx-2">
+                    Return to Curriculum
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
-   
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Set width via JavaScript
+        const progressBar = document.querySelector('.progress-bar');
+        const score = progressBar.dataset.score;
+        progressBar.style.width = score + '%';
+    });
+</script>
 {% endblock %}

@@ -140,3 +140,83 @@ body {
 h1, h2, h3, h4, h5, h6 {
     text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.7);
 }
+
+/* Quiz Game Styles */
+.question-slide {
+    transition: all 0.3s ease;
+}
+
+.option-card {
+    background-color: #2a3950;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #e0e1dd;
+}
+
+.option-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+    background-color: #3b5998;
+}
+
+.option-content {
+    font-size: 1.2rem;
+}
+
+.correct-answer {
+    background-color: #28a745 !important;
+    animation: pulse 1s;
+}
+
+.incorrect-answer {
+    background-color: #dc3545 !important;
+    animation: shake 0.5s;
+}
+
+#timer, #score {
+    text-align: center;
+    font-family: 'Orbitron', sans-serif;
+}
+
+/* Timer Animation */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Incorrect Answer Animation */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+/* Question container styling */
+#question-container {
+    background-color: #1e2a3a;
+    border: 2px solid #3b5998;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.question-text {
+    color: #e0e1dd;
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+/* Timer styling */
+#timer {
+    color: #ffffff;
+    font-size: 2.5rem;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+
+/* Score display */
+#score {
+    color: #ffde00;
+    font-size: 2.5rem;
+    text-shadow: 0 0 10px rgba(255, 222, 0, 0.5);
+}

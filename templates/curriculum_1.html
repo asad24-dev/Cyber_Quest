@@ -23,7 +23,7 @@
             <div class="card-body">
                 <h5 class="card-title">Introduction to Cyber Quest</h5>
                 <p class="card-text">
-                    Begin your journey by reading the basics of cybersecurity and understanding the world of Cyber Quest.
+                    Begin your journey by reading the basics of safe E-mails and phishing.
                 </p>
                 
                 {% if article_read %}
@@ -41,9 +41,9 @@
                 Play the Game
             </div>
             <div class="card-body">
-                <h5 class="card-title">Cyber Challenge Level 1</h5>
+                <h5 class="card-title">Fraudulent Or Legitimate</h5>
                 <p class="card-text">
-                    Test your newfound knowledge in an interactive game challenge. Solve puzzles and progress your skills.
+                    Test your newfound knowledge in an interactive game challenge. Choose Whether the provided E-mail is fraudulent or legitimate.
                 </p>
                 {% if quiz_passed %}
                     <span class="btn btn-secondary">Quiz Passed</span>
@@ -57,7 +57,7 @@
         <!-- Navigation to Next Level (Disabled until completion) -->
         {% if article_read and quiz_passed %}
             <div class="text-end">
-                <a href="/next" id="proceedLink" class="btn btn-outline-secondary">Proceed to Level 2</a>
+                <a href="/next" class="btn btn-outline-secondary">Proceed to Level 2</a>
             </div>
         {% endif %}
     </div>
@@ -80,7 +80,11 @@
             <p class="card-text">
                 Expand your knowledge with detailed insights on advanced cybersecurity topics.
             </p>
-            <a href="#" class="btn btn-primary">Read Article</a>
+            {% if article_read %}
+                <span class="btn btn-secondary">Article Already Read</span>
+            {% else %}
+                <a href="{{ url_for('article', level=level) }}" class="btn btn-primary" node="[object Object]">Read Article</a>
+            {% endif %}
         </div>
     </div>
     <!-- Play Game Section -->
@@ -93,12 +97,20 @@
             <p class="card-text">
                 This level puts your skills to the test in an increasingly challenging game scenario.
             </p>
-            <a href="#" class="btn btn-success">Play Game</a>
+            {% if quiz_passed %}
+                <span class="btn btn-secondary">Quiz Passed</span>
+            {% else %}
+                <a href="{{ url_for('game', level=level) }}" class="btn btn-success" node="[object Object]">Play Game</a>
+            {% endif %}
         </div>
     </div>
     <!-- Navigation to Next Level -->
     <div class="text-end">
-        <a href="/next" class="btn btn-outline-secondary">Proceed to Level 3</a>
+        {% if article_read and quiz_passed %}
+            <div class="text-end">
+                <a href="/next" class="btn btn-outline-secondary">Proceed to Level 3</a>
+            </div>
+        {% endif %}
     </div>
 
 {% elif level == 3 %}
@@ -120,7 +132,11 @@
             <p class="card-text">
                 Delve into expert-level cybersecurity concepts and prepare for industry challenges.
             </p>
-            <a href="#" class="btn btn-primary">Read Article</a>
+            {% if article_read %}
+                <span class="btn btn-secondary">Article Already Read</span>
+            {% else %}
+                <a href="{{ url_for('article', level=level) }}" class="btn btn-primary" node="[object Object]">Read Article</a>
+            {% endif %}
         </div>
     </div>
     <!-- Play Game Section -->
@@ -133,12 +149,16 @@
             <p class="card-text">
                 Prove your commitment by conquering the final challenge.
             </p>
-            <a href="#" class="btn btn-success">Play Game</a>
+            {% if quiz_passed %}
+            <span class="btn btn-secondary">Quiz Passed</span>
+            {% else %}
+                <a href="{{ url_for('game', level=level) }}" class="btn btn-success" node="[object Object]">Play Game</a>
+            {% endif %}
         </div>
     </div>
     <!-- Navigation or Completion -->
     <div class="text-end">
-        <a href="/complete" class="btn btn-outline-secondary">Complete Curriculum</a>
+        <a href="/next" class="btn btn-outline-secondary">Complete Curriculum</a>
     </div>
 
 {% else %}
