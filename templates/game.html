@@ -123,10 +123,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     let currentQuestionIndex = 0;
     let totalQuestions = quizData.questions.length;
-    let timeRemaining = 20;
+    let timeRemaining = 10;
     let timerInterval;
     let totalScore = 0;
-    let questionPoints = 20;
+    let questionPoints = 10;
     
     // Set up option click handlers
     document.querySelectorAll('.option-card').forEach(option => {
@@ -181,8 +181,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function startTimer() {
         // Reset timer values
-        timeRemaining = 20;
-        questionPoints = 20;
+        timeRemaining = 10;
+        questionPoints = 10;
         updateDisplay();
         
         // Clear any existing interval
@@ -191,8 +191,8 @@ document.addEventListener('DOMContentLoaded', function() {
         // Start new timer
         timerInterval = setInterval(() => {
             timeRemaining--;
-            questionPoints = Math.max(1, 20 - ((20 - timeRemaining) * 0.5));
-            questionPoints = Math.round(questionPoints * 20) / 20;
+            questionPoints = Math.max(1, 10 - ((10 - timeRemaining) * 0.5));
+            questionPoints = Math.round(questionPoints * 10) / 10;
             updateDisplay();
             
             if (timeRemaining <= 0) {
@@ -304,7 +304,7 @@ document.addEventListener('DOMContentLoaded', function() {
 }
 
 .question-text {
-    color: #1e2a3a;
+    color: white;
     margin-bottom: 20px;
 }
 

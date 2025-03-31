@@ -27,10 +27,15 @@ db = SQL("sqlite:///scenario1.db")
 @app.route("/")
 @login_required
 def index():
-    session.clear()
-    """Show portfolio of stocks"""
-    progress = db.execute("SELECT level FROM users WHERE user_ID = :id", id=session["user_id"])
-    return render_template("curriculum_1.html", progress = progress)
+    info = db.execute("SELECT * FROM users WHERE user_id = ?", session["user_id"])
+    if len(info) != 1:
+        return apology("User not found", 403)
+    username = info[0]["user_name"]
+    level = info[0]["Level"]
+    progress = (((level - 1) / 3) * 100)
+    curriculum = info[0]["Curriculum"]
+    tech_quote = "The first 1GB hard drive was announced in 1980 and weighed over 500 pounds."
+    return render_template("home.html", username = username, progress=progress, level=level, curriculum=curriculum, tech_quote=tech_quote)
 
 @app.route("/curriculum")
 @login_required
@@ -45,7 +50,10 @@ def curriculum():
     article_read = (len(progress) == 1 and progress[0]["article_read"] == 1)
     progress_quiz = db.execute("SELECT game_passed FROM quiz_progress WHERE user_id = ? AND curriculum = ? AND level = ?", user_id, curriculum_val, current_level)
     quiz_passed = (len(progress_quiz) == 1 and progress_quiz[0]["game_passed"] == 1)
-    return render_template("curriculum_1.html", level=current_level, curriculum=curriculum_val, article_read = article_read, quiz_passed = quiz_passed)
+    if curriculum_val == 1:
+        return render_template("curriculum_1.html", level=current_level, curriculum=curriculum_val, article_read = article_read, quiz_passed = quiz_passed)
+    else:
+        return render_template("curriculum_2.html", level=current_level, curriculum=curriculum_val, article_read = article_read, quiz_passed = quiz_passed)
 
 @app.route("/game/<int:level>", methods=["GET", "POST"])
 @login_required
@@ -147,7 +155,7 @@ def next_level():
         db.execute("UPDATE users SET Level = ? WHERE User_ID = ?", new_level, user_id)
     # Otherwise, perhaps mark the curriculum as complete or just redirect
     else:
-        render_template("complete.html")
+        return render_template("complete.html")
     return redirect("/curriculum")
 
 @app.route("/login", methods=["GET", "POST"])
@@ -179,7 +187,7 @@ def login():
         session["user_id"] = rows[0]["User_ID"]
         
         # Redirect user to home page
-        return redirect("/curriculum")
+        return redirect("/")
 
     # User reached route via GET (as by clicking a link or via redirect)
     else:

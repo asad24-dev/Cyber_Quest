@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Article for Level {{ level }}
+{% endblock %}
+
+{% block main %}
+<div class="dashboard">
+    <h1>Welcome, {{ username }}!</h1>
+    <div class="progress-container">
+        <h2>Current Level: {{ level }}</h2>
+        <p>Progress: {{ progress }}%</p>
+        <progress value="{{ progress }}" max="100"></progress>
+    </div>
+    <br><br><br>
+    <div class="quote-container">
+        <h3>Tech Fact of the Day</h3><br><br>
+        <p>{{ tech_quote }}</p>
+    </div>
+    <nav>
+        <a href="{{ url_for('curriculum') }}" class="btn btn-primary" style="margin-right: 20px;">Continue Learning</a>
+        <a href="{{ url_for('logout') }}" class="btn btn-primary">Logout</a>
+    </nav>
+</div>
+   
+{% endblock %}
