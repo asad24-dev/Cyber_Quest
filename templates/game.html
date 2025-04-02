@@ -123,10 +123,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     let currentQuestionIndex = 0;
     let totalQuestions = quizData.questions.length;
-    let timeRemaining = 10;
+    let timeRemaining = 20;
     let timerInterval;
     let totalScore = 0;
-    let questionPoints = 10;
+    let questionPoints = 20;
     
     // Set up option click handlers
     document.querySelectorAll('.option-card').forEach(option => {
@@ -181,8 +181,8 @@ document.addEventListener('DOMContentLoaded', function() {
     
     function startTimer() {
         // Reset timer values
-        timeRemaining = 10;
-        questionPoints = 10;
+        timeRemaining = 20;
+        questionPoints = 20;
         updateDisplay();
         
         // Clear any existing interval
@@ -191,7 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Start new timer
         timerInterval = setInterval(() => {
             timeRemaining--;
-            questionPoints = Math.max(1, 10 - ((10 - timeRemaining) * 0.5));
+            questionPoints = Math.max(1, 20 - ((20 - timeRemaining) * 0.5));
             questionPoints = Math.round(questionPoints * 10) / 10;
             updateDisplay();
             
@@ -240,7 +240,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function finishQuiz() {
-        const maxPossibleScore = totalQuestions * 10;
+        const maxPossibleScore = totalQuestions * 20;
     
     // Convert raw score to percentage
         const scorePercentage = Math.round((totalScore / maxPossibleScore) * 100);

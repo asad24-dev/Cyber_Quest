@@ -8,7 +8,6 @@ from datetime import datetime
 from cs50 import SQL
 
 
-
 app = Flask(__name__)
 
 app.jinja_env.filters["usd"] = usd
@@ -17,8 +16,6 @@ app.jinja_env.filters["usd"] = usd
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
-
-
 
 
 db = SQL("sqlite:///scenario1.db")
@@ -54,6 +51,7 @@ def curriculum():
         return render_template("curriculum_1.html", level=current_level, curriculum=curriculum_val, article_read = article_read, quiz_passed = quiz_passed)
     else:
         return render_template("curriculum_2.html", level=current_level, curriculum=curriculum_val, article_read = article_read, quiz_passed = quiz_passed)
+
 
 @app.route("/game/<int:level>", methods=["GET", "POST"])
 @login_required
@@ -107,7 +105,7 @@ def game(level):
         return render_template("game_result.html", level=level, score=score, total=total, wrong=wrong, passed=passed)
 
     elif request.method == "GET":
-        return render_template("game.html", level=level, quiz_questions=questions)
+        return render_template("game.html", level=level, quiz_questions=questions, curr = curriculum_val)
 
     return apology("Invalid request method", 400)
             
@@ -138,6 +136,7 @@ def article(level):
     else:
         return render_template("article.html", level=level, article=article)
     
+
 @app.route("/next", methods=["GET", "POST"])
 @login_required
 def next_level():
@@ -155,8 +154,11 @@ def next_level():
         db.execute("UPDATE users SET Level = ? WHERE User_ID = ?", new_level, user_id)
     # Otherwise, perhaps mark the curriculum as complete or just redirect
     else:
+        new_level = current_level + 1
+        db.execute("UPDATE users SET Level = ? WHERE User_ID = ?", new_level, user_id)
         return render_template("complete.html")
     return redirect("/curriculum")
+
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
@@ -194,7 +196,6 @@ def login():
         return render_template("login.html")
 
 
-
 @app.route("/logout")
 def logout():
     """Log user out"""
@@ -204,11 +205,6 @@ def logout():
 
     # Redirect user to login form
     return redirect("/")
-
-
-
-
-
 
 
 @app.route("/register", methods=["GET", "POST"])
