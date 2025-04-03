@@ -46,7 +46,7 @@
                         <h3 class="question-text mb-4">{{ q.question }}</h3>
                     {% endif %}
                     
-                    <!-- In game.html, check if options exist before rendering -->
+                    <!-- check if options exist before rendering -->
                     <div class="options-container">
                         <div class="option-card mb-3" data-option="1">
                             <div class="option-content p-3">
@@ -111,9 +111,7 @@
     }|tojson|safe }}
 </script>
 <script>
-// @ts-nocheck
-// Disable validation for mixed Jinja/JavaScript code
-// Create a data bridge to safely pass Jinja data to JavaScript
+
 const quizData = JSON.parse(document.getElementById('quiz-data').textContent);
 
 // Quiz game logic

@@ -1,18 +1,14 @@
 import os
-from flask import Flask, flash, redirect, render_template, request, session
+from flask import Flask, redirect, render_template, request, session
 from flask_session import Session
 from werkzeug.security import check_password_hash, generate_password_hash
-from datetime import datetime
-from helpers import apology, login_required, lookup, usd
-from datetime import datetime
+from helpers import apology, login_required
 from cs50 import SQL
 
 
 app = Flask(__name__)
 
-app.jinja_env.filters["usd"] = usd
 
-# Configure session to use filesystem (instead of signed cookies)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
@@ -152,7 +148,6 @@ def next_level():
     if current_level < 3:
         new_level = current_level + 1
         db.execute("UPDATE users SET Level = ? WHERE User_ID = ?", new_level, user_id)
-    # Otherwise, perhaps mark the curriculum as complete or just redirect
     else:
         new_level = current_level + 1
         db.execute("UPDATE users SET Level = ? WHERE User_ID = ?", new_level, user_id)
@@ -163,35 +158,25 @@ def next_level():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Log user in"""
-
     # Forget any user_id
     session.clear()
 
-    # User reached route via POST (as by submitting a form via POST)
     if request.method == "POST":
-
         # Ensure username was submitted
         if not request.form.get("username"):
             return apology("must provide username", 403)
-
         # Ensure password was submitted
         elif not request.form.get("password"):
             return apology("must provide password", 403)
-
         # Query database for username
         rows = db.execute("SELECT * FROM users WHERE user_name = ?", request.form.get("username"))
-
         # Ensure username exists and password is correct
         if len(rows) != 1 or not check_password_hash(rows[0]["password_hash"], request.form.get("password")):
             return apology("invalid username and/or password", 403)
-
         # Remember which user has logged in
         session["user_id"] = rows[0]["User_ID"]
-        
         # Redirect user to home page
         return redirect("/")
-
-    # User reached route via GET (as by clicking a link or via redirect)
     else:
         return render_template("login.html")
 

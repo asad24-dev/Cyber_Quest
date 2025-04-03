@@ -1,26 +1,3 @@
-/* Size for brand */
-/* nav .navbar-brand
-{
-    font-size: xx-large;
-}
-
-/* Colors for brand */
-/* nav .navbar-brand .blue
-{
-    color: #537fbe;
-}
-nav .navbar-brand .red
-{
-    color: #ea433b;
-}
-nav .navbar-brand .yellow
-{
-    color: #f5b82e;
-}
-nav .navbar-brand .green
-{
-    color: #2e944b;
-} */ 
 
 .navbar {
     background-color: rgba(0, 0, 0, 0.8) !important;
@@ -68,7 +45,7 @@ nav .navbar-brand .green
     border:1px solid grey;
     margin-left: 140%;
 }
-.head
+/* .head
 {
     margin-left: 140%;
 }
@@ -77,13 +54,13 @@ nav .navbar-brand .green
     font-family: helvetica;
     vertical-align: middle;
     font-size: 30px;
-}
+} */
 .col-75 {
     float: left;
     width: 100%;
     margin-top: 6px;
 }
-#friends-list{
+/* #friends-list{
     cursor: pointer;
     transition: background-color 0.3s, transform 0.3s;
     background-color: #0080ff;
@@ -94,7 +71,7 @@ nav .navbar-brand .green
 #friends-list:hover {
     background-color: darkblue;
     transform: scale(1.05);
-}
+} */
 .badge-notification {
     background-color: red;
     color: white;
@@ -111,16 +88,10 @@ nav .navbar-brand .green
     position: relative;
 }
 body {
-    /* Option 1: Solid cyber blue background */
-    /* background-color: #0d1b2a; */
-
-    /* Option 2: Cyber blue gradient background */
     background: linear-gradient(135deg, #0d1b2a, #1b263b);
     
-    /* Text color to contrast the dark background */
     color: #e0e1dd;
     
-    /* Choose a futuristic font */
     font-family: 'Orbitron', sans-serif;
 }
 
